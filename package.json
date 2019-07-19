@@ -1,0 +1,26 @@
+{
+  "name": "@skazska/abstract-aws-service-model",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skazska/abstract-aws-service-model.git"
+  },
+  "author": "skazska@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/skazska/abstract-aws-service-model/issues"
+  },
+  "homepage": "https://github.com/skazska/abstract-aws-service-model#readme",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.30"
+  },
+  "dependencies": {
+    "@skazska/abstract-service-model": "^0.1.6",
+    "aws-sdk": "^2.495.0"
+  }
+}

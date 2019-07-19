@@ -1,11 +1,15 @@
-.aws-cfg.json
-.deploy-aws-cfg.json
-
-#package-lock.json
-
 .idea
-dist
+.gitignore
+.travis.yml
+.npmignore
+#*.map
+tsconfig.*
+
 docs
+src
+test
+test-int
+field-test
 
 # Logs
 logs
@@ -24,10 +28,10 @@ pids
 lib-cov
 
 # Coverage directory used by tools like istanbul
-#coverage
+coverage
 
 # nyc test coverage
-#.nyc_output
+.nyc_output
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -38,15 +42,9 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
 
-# Dependency directories
 node_modules/
 jspm_packages/
-
-# TypeScript v1 declaration files
-#typings/
 
 # Optional npm cache directory
 .npm
@@ -59,12 +57,3 @@ jspm_packages/
 
 # Output of 'npm pack'
 *.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# next.js build output
-.next
