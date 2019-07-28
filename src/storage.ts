@@ -58,7 +58,7 @@ export interface IDynamodbStorageSaveOptions extends IDynamodbStorageModifyOptio
 
 export interface IDynamodbStorageDelOptions extends IDynamodbStorageModifyOptions {}
 
-
+// sets properties from options to params capitalizing their names
 const attachParams = (params :object, options :any) => {
     Object.keys(options||{}).forEach(key => {
         params[key.charAt(0).toUpperCase() + key.slice(1)] = options[key];
@@ -66,11 +66,13 @@ const attachParams = (params :object, options :any) => {
     return params;
 };
 
+// converts Object data to DocumentClient.Key
 const objectToKey = (obj :any) :DocumentClient.Key => {
     //TODO there possibly some transformations may be required
     return <DocumentClient.Key>obj;
 };
 
+// converts Object data to DocumentClient.AttributeMap
 const objectToAttributeMap = (obj :any) :DocumentClient.AttributeMap => {
     //TODO there possibly some transformations may be required
     return <DocumentClient.AttributeMap>obj;
@@ -107,7 +109,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
             }, options);
             this._client.get(<DocumentClient.GetItemInput>params, (err, data) => {
                 if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
-                if (!data.Item) return resolve(failure([AbstractModelStorage.error('not found')]));
+                if (!data.Item) return resolve(failure([AbstractModelStorage.error('not found', 'dynamodb')]));
                 resolve(success(this._modelFactory.dataModel(data.Item)));
             });
         });
@@ -119,7 +121,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                 // update
                 let params = attachParams({
                     TableName: this._table,
-                    Key: objectToKey(data.key)
+                    Key: objectToKey(data.getKey())
                 }, options);
                 this._client.update(<DocumentClient.UpdateItemInput>params, (err, data) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
@@ -129,7 +131,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                 // put
                 let params = attachParams({
                     TableName: this._table,
-                    Item: objectToAttributeMap(data.data)
+                    Item: objectToAttributeMap(data.getData())
                 }, options);
                 this._client.put(<DocumentClient.PutItemInput>params, (err, data) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));

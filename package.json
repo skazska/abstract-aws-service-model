@@ -4,7 +4,12 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "test"
+    "clear-dist": "rm -rf dist/*",
+    "clear-docs": "rm -rf docs/*",
+    "compile": "npm run clear-dist && tsc",
+    "compile-test": "tsc -p tsconfig.test.json",
+    "gen-docs": "npm run clear-docs && typedoc --out docs --mode modules",
+    "test": "npm run compile-test && mocha -r ts-node/register test/*.ts"
   },
   "repository": {
     "type": "git",
@@ -17,10 +22,19 @@
   },
   "homepage": "https://github.com/skazska/abstract-aws-service-model#readme",
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.30"
+    "@types/aws-lambda": "^8.10.31",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.6.8",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@skazska/abstract-service-model": "^0.1.6",
-    "aws-sdk": "^2.495.0"
+    "@skazska/abstract-service-model": "^0.2.3",
+    "aws-sdk": "^2.501.0"
   }
 }
