@@ -54,6 +54,7 @@ describe('dynamo-db-storage', () => {
         client.get = sinon.spy(success({Item: {id: 'id', name: 'test'}}));
         let result = await storage.load({id: 'id'});
         expect(result.get()).be.instanceof(TestModel);
+        expect(client.get.args[0][0]).eql({'TableName': 'test', 'Key': {id: 'id'}});
 
         // not found
         client.get = sinon.spy(success({}));
@@ -79,6 +80,7 @@ describe('dynamo-db-storage', () => {
         client.put = sinon.spy(success({}));
         result = await storage.save(model);
         expect(result.get()).eql({});
+        expect(client.put.args[0][0]).eql({'TableName': 'test', 'Item': {id: 'id', name: 'test'}});
 
         // fail
         client.put = sinon.spy(fail(new Error('error')));
@@ -92,6 +94,7 @@ describe('dynamo-db-storage', () => {
         client.update = sinon.spy(success({}));
         result = await storage.save(model, {updateExpression: 'update'});
         expect(result.get()).eql({});
+        expect(client.update.args[0][0]).eql({'TableName': 'test', 'Key': {id: 'id'}, "UpdateExpression": "update"});
 
         // fail
         client.update = sinon.spy(fail(new Error('error')));
