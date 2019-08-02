@@ -1,6 +1,7 @@
 import {AbstractModelStorage, IModelStorageConfig, GenericModel, failure, GenericResult, success, IStorageError, IStorageOperationOptions} from "@skazska/abstract-service-model";
 
 import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
+import {DynamoDB} from "aws-sdk";
 
 export interface IDynamodbModelStorageConfig<K, P> extends IModelStorageConfig<K,P> {
     client :DocumentClient;
@@ -78,10 +79,9 @@ const objectToAttributeMap = (obj :any) :DocumentClient.AttributeMap => {
     return <DocumentClient.AttributeMap>obj;
 };
 
-
 export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
-    private _client :DocumentClient;
-    private _table: string;
+    private readonly _client :DocumentClient;
+    private readonly _table: string;
 
     constructor(props :IDynamodbModelStorageConfig<K,P>) {
         super(props);
@@ -152,5 +152,10 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                 resolve(success(data));
             });
         });
+    }
+
+    // returns default storage client
+    static getDefaultClient (options? :DocumentClient.DocumentClientOptions & DynamoDB.Types.ClientConfiguration) :DocumentClient {
+        return new DynamoDB.DocumentClient(options);
     }
 }
