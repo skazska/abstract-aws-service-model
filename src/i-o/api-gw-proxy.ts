@@ -1,6 +1,5 @@
-import {APIGatewayProxyResult} from "aws-lambda";
-import {HandleResult, success, IError} from "@skazska/abstract-service-model";
-import {AwsApiGwIO} from "./api-gw";
+import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
+import {HandleResult, success, IError, AbstractIO} from "@skazska/abstract-service-model";
 
 // APIGatewayProxyResult
 // statusCode: number;
@@ -19,7 +18,14 @@ const STAGE_TO_STATUS = {
     'execution': 500
 };
 
-export abstract class AwsApiGwProxyIO<EI, EO> extends AwsApiGwIO<EI, EO, APIGatewayProxyResult> {
+export interface IAwsApiGwProxyInput {
+    event :APIGatewayProxyEvent,
+    context :Context,
+    callback :APIGatewayProxyCallback
+}
+
+
+export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyInput, EI, EO, APIGatewayProxyResult> {
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
         return success({
             statusCode: STAGE_TO_STATUS[stage],

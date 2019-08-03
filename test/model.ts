@@ -1,4 +1,4 @@
-import {GenericModel, GenericModelFactory, IGenericModelOptions, IModelDataAdepter} from "@skazska/abstract-service-model";
+import {GenericModel, GenericModelFactory, IGenericModelOptions, IModelDataAdepter, ModelValidationResult} from "@skazska/abstract-service-model";
 
 export interface ITestKey {
     id :string
@@ -14,6 +14,7 @@ export class TestModel extends GenericModel<ITestKey, ITestProps> {
     }
 
     protected setOptions(options: IGenericModelOptions<ITestKey, ITestProps>): any {}
+    validate(): ModelValidationResult { return undefined;}
 }
 
 class TestModelDataAdapter implements IModelDataAdepter<ITestKey, ITestProps> {
