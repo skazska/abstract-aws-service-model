@@ -99,7 +99,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
         return success(model);
     }
 
-    newKey(): Promise<GenericResult<K, IStorageError>> {
+    newKey(options?: IStorageOperationOptions): Promise<GenericResult<K, IStorageError>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
