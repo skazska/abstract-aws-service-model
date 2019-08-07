@@ -1,4 +1,6 @@
-import {GenericModel, GenericModelFactory, IGenericModelOptions, IModelDataAdepter, ModelValidationResult} from "@skazska/abstract-service-model";
+import {GenericModel, GenericModelFactory, IGenericModelOptions, IModelDataAdepter, ModelValidationResult, GenericResult,
+    IModelError,
+    success} from "@skazska/abstract-service-model";
 
 export interface ITestKey {
     id :string
@@ -18,13 +20,16 @@ export class TestModel extends GenericModel<ITestKey, ITestProps> {
 }
 
 class TestModelDataAdapter implements IModelDataAdepter<ITestKey, ITestProps> {
-    getKey (data :any) :ITestKey {
-        return {id: data.id};
+    getKey (data :any) :GenericResult<ITestKey, IModelError> {
+        return success({id: data.id});
     };
-    getProperties (data :any) :ITestProps {
+    getProperties (data :any) :GenericResult<ITestProps, IModelError> {
         let result :ITestProps = {name: data.name};
-        return result;
+        return success(result);
     };
+    getData(key: ITestKey, properties: ITestProps): any {
+        return {...key, ...properties}
+    }
 }
 
 export class TestModelFactory extends GenericModelFactory<ITestKey, ITestProps> {

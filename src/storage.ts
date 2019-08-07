@@ -92,9 +92,11 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
     get client() :DocumentClient { return this._client; }
     get table() :string { return this._table; }
 
-    data(key:K, props: P) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
-        const data = this._modelFactory.model(key, props);
-        return Promise.resolve(success(data));
+    protected processModifyResult(
+        model :GenericModel<K,P>,
+        response :DocumentClient.UpdateItemOutput|DocumentClient.PutItemOutput) :GenericResult<GenericModel<K,P>, IStorageError>
+    {
+        return success(model);
     }
 
     newKey(): Promise<GenericResult<K, IStorageError>> {
@@ -110,12 +112,17 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
             this._client.get(<DocumentClient.GetItemInput>params, (err, data) => {
                 if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
                 if (!data.Item) return resolve(failure([AbstractModelStorage.error('not found', 'dynamodb')]));
-                resolve(success(this._modelFactory.dataModel(data.Item)));
+                resolve(this.modelFactory.dataModel(data.Item));
             });
         });
     }
     save(data :GenericModel<K,P>, options: IDynamodbStorageSaveOptions)
-        :Promise<GenericResult<DocumentClient.UpdateItemOutput|DocumentClient.PutItemOutput, IStorageError>> {
+        :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
+
+        const result = response => {
+            return success(data)
+        };
+
         return new Promise((resolve) => {
             if (options && options.updateExpression) {
                 // update
@@ -123,25 +130,24 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                     TableName: this._table,
                     Key: objectToKey(data.getKey())
                 }, options);
-                this._client.update(<DocumentClient.UpdateItemInput>params, (err, data) => {
+                this._client.update(<DocumentClient.UpdateItemInput>params, (err, response) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
-                    resolve(success(data));
+                    resolve(this.processModifyResult(data, response));
                 });
             } else {
                 // put
                 let params = attachParams({
                     TableName: this._table,
-                    Item: objectToAttributeMap(data.getData())
+                    Item: objectToAttributeMap(this.modelFactory.data(data))
                 }, options);
-                this._client.put(<DocumentClient.PutItemInput>params, (err, data) => {
+                this._client.put(<DocumentClient.PutItemInput>params, (err, response) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
-                    resolve(success(data));
+                    resolve(this.processModifyResult(data, response));
                 });
             }
         });
     }
-    erase(key :K, options? :IDynamodbStorageDelOptions)
-        :Promise<GenericResult<DocumentClient.DeleteItemOutput, IStorageError>> {
+    erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<any, IStorageError>> {
         return new Promise((resolve) => {
             const params = attachParams({
                 TableName: this._table,

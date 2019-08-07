@@ -43,7 +43,7 @@ describe('dynamo-db-storage', () => {
 
         expect(storage.client).eql(client);
         expect(storage.table).eql('test');
-        expect(storage.data({id: 'id'}, {name: 'test'}));
+        // expect(storage.data({id: 'id'}, {name: 'test'}));
         let newKeyResult = await storage.newKey();
         expect(newKeyResult.isFailure).to.equal(true);
     });
@@ -72,14 +72,14 @@ describe('dynamo-db-storage', () => {
     });
 
     it('save', async () => {
-        let model :TestModel = <TestModel>modelFactory.dataModel({id: 'id', name: 'test'});
+        let model :TestModel = <TestModel>modelFactory.dataModel({id: 'id', name: 'test'}).get();
         let result;
 
         // put success
         storage = newStorage(client, modelFactory);
         client.put = sinon.spy(success({}));
         result = await storage.save(model);
-        expect(result.get()).eql({});
+        expect(result.get()).eql(model);
         expect(client.put.args[0][0]).eql({'TableName': 'test', 'Item': {id: 'id', name: 'test'}});
 
         // fail
@@ -93,7 +93,7 @@ describe('dynamo-db-storage', () => {
         storage = newStorage(client, modelFactory);
         client.update = sinon.spy(success({}));
         result = await storage.save(model, {updateExpression: 'update'});
-        expect(result.get()).eql({});
+        expect(result.get()).eql(model);
         expect(client.update.args[0][0]).eql({'TableName': 'test', 'Key': {id: 'id'}, "UpdateExpression": "update"});
 
         // fail
