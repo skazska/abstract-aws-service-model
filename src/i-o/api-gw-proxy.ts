@@ -1,5 +1,5 @@
 import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
-import {HandleResult, success, IError, AbstractIO} from "@skazska/abstract-service-model";
+import {HandleResult, success, IError, AbstractIO, IIOOptions} from "@skazska/abstract-service-model";
 
 // APIGatewayProxyResult
 // statusCode: number;
@@ -24,8 +24,21 @@ export interface IAwsApiGwProxyInput {
     callback :APIGatewayProxyCallback
 }
 
+export interface IAwsApiGwProxyIOOptions extends IIOOptions {
+    successStatus :number
+}
 
 export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyInput, EI, EO, APIGatewayProxyResult> {
+    protected options :IAwsApiGwProxyIOOptions;
+
+    protected constructor(
+        executable,
+        authenticator,
+        options?: IAwsApiGwProxyIOOptions
+    ) {
+        super(executable, authenticator, options || {successStatus: 200});
+    }
+
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
         return success({
             statusCode: STAGE_TO_STATUS[stage],
@@ -40,12 +53,21 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
     };
 
     protected success(result: EO) :APIGatewayProxyResult {
-        return {
-            statusCode: 200,
-            body: JSON.stringify(result),
+        const resp = {
+            statusCode: this.options.successStatus || 200,
+            body: '',
             headers: {
                 'Content-Type': 'application/json'
             }
         };
+        if ((result === null || typeof result === 'undefined')) {
+            resp.statusCode = 204;
+            delete resp.body;
+
+        } else {
+            resp.body = JSON.stringify(result);
+        }
+
+        return resp;
     };
 }
