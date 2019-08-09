@@ -25,8 +25,18 @@ export interface IAwsApiGwProxyInput {
 }
 
 export interface IAwsApiGwProxyIOOptions extends IIOOptions {
-    successStatus :number
+    successStatus :number,
+    contentType: string,
+    bodySerializer: (data: any) => string
+    doBase64Encode: boolean
 }
+
+const defaultOptions :IAwsApiGwProxyIOOptions = {
+    successStatus :200,
+    contentType: 'application/json',
+    bodySerializer: data => JSON.stringify(data),
+    doBase64Encode: false
+};
 
 export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyInput, EI, EO, APIGatewayProxyResult> {
     protected options :IAwsApiGwProxyIOOptions;
@@ -36,7 +46,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
         authenticator,
         options?: IAwsApiGwProxyIOOptions
     ) {
-        super(executable, authenticator, options || {successStatus: 200});
+        super(executable, authenticator, Object.assign(defaultOptions, options || {}));
     }
 
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
@@ -54,10 +64,10 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
 
     protected success(result: EO) :APIGatewayProxyResult {
         const resp = {
-            statusCode: this.options.successStatus || 200,
+            statusCode: this.options.successStatus,
             body: '',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': this.options.contentType
             }
         };
         if ((result === null || typeof result === 'undefined')) {
@@ -65,7 +75,9 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
             delete resp.body;
 
         } else {
-            resp.body = JSON.stringify(result);
+            let body = this.options.bodySerializer(result);
+            if (this.options.doBase64Encode) body = Buffer.from(body).toString('base64');
+            resp.body = body;
         }
 
         return resp;
