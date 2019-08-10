@@ -10,7 +10,7 @@
     "compile": "npm run clear-dist && tsc",
     "compile-test": "tsc -p tsconfig.test.json",
     "gen-docs": "npm run clear-docs && typedoc --out docs --mode modules",
-    "test": "npm run compile-test && mocha -r ts-node/register test/*.ts"
+    "test": "npm run compile-test && mocha -r ts-node/register test/*.spec.ts"
   },
   "repository": {
     "type": "git",
