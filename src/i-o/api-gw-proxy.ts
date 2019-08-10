@@ -25,10 +25,10 @@ export interface IAwsApiGwProxyInput {
 }
 
 export interface IAwsApiGwProxyIOOptions extends IIOOptions {
-    successStatus :number,
-    contentType: string,
-    bodySerializer: (data: any) => string
-    doBase64Encode: boolean
+    successStatus? :number,
+    contentType?: string,
+    bodySerializer?: (data: any) => string
+    doBase64Encode?: boolean
 }
 
 const defaultOptions :IAwsApiGwProxyIOOptions = {
@@ -46,7 +46,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
         authenticator,
         options?: IAwsApiGwProxyIOOptions
     ) {
-        super(executable, authenticator, Object.assign(defaultOptions, options || {}));
+        super(executable, authenticator, { ...defaultOptions, ...(options || {})});
     }
 
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
