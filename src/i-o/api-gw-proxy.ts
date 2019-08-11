@@ -58,7 +58,8 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
             }),
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            isBase64Encoded: false
         });
     };
 
@@ -68,12 +69,11 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
             body: '',
             headers: {
                 'Content-Type': this.options.contentType
-            }
+            },
+            isBase64Encoded: this.options.doBase64Encode
         };
         if ((result === null || typeof result === 'undefined')) {
             resp.statusCode = 204;
-            delete resp.body;
-
         } else {
             let body = this.options.bodySerializer(result);
             if (this.options.doBase64Encode) body = Buffer.from(body).toString('base64');
