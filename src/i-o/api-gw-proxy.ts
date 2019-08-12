@@ -14,8 +14,9 @@ import {HandleResult, success, IError, AbstractIO, IIOOptions} from "@skazska/ab
 
 const STAGE_TO_STATUS = {
     'auth': 403,
-    'validation': 400,
-    'execution': 500
+    'extract': 400,
+    'execution': 500,
+    'encode': 500
 };
 
 export interface IAwsApiGwProxyInput {
@@ -54,7 +55,11 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
             statusCode: STAGE_TO_STATUS[stage],
             body: JSON.stringify({
                 message: message,
-                errors: errors
+                errors: errors.map(err => {
+                    let result = {...err};
+                    delete result.stack;
+                    return result;
+                })
             }),
             headers: {
                 'Content-Type': 'application/json'

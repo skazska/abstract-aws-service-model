@@ -60,14 +60,14 @@ describe('dynamo-db-storage', () => {
         client.get = sinon.spy(success({}));
         result = await storage.load({id: 'id'});
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('not found');
+        expect(result.errors[0].message).equal('not found');
         expect(result.errors[0].source).equal('dynamodb');
 
         // fail
         client.get = sinon.spy(fail(new Error('error')));
         result = await storage.load({id: 'id'});
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('error');
+        expect(result.errors[0].message).equal('error');
         expect(result.errors[0].source).equal('dynamodb');
     });
 
@@ -86,7 +86,7 @@ describe('dynamo-db-storage', () => {
         client.put = sinon.spy(fail(new Error('error')));
         result = await storage.save(model);
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('error');
+        expect(result.errors[0].message).equal('error');
         expect(result.errors[0].source).equal('dynamodb');
 
         // update success
@@ -100,7 +100,7 @@ describe('dynamo-db-storage', () => {
         client.update = sinon.spy(fail(new Error('error')));
         result = await storage.save(model, {updateExpression: 'update'});
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('error');
+        expect(result.errors[0].message).equal('error');
         expect(result.errors[0].source).equal('dynamodb');
     });
 
