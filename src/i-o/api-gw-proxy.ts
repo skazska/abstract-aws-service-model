@@ -58,6 +58,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
                 errors: errors.map(err => {
                     let result = {...err};
                     delete result.stack;
+                    result.message = err.message; // for native errors
                     return result;
                 })
             }),
