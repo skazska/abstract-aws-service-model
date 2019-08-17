@@ -10,7 +10,7 @@
     "compile": "npm run clear-dist && tsc",
     "compile-test": "tsc -p tsconfig.test.json",
     "gen-docs": "npm run clear-docs && typedoc --out docs --mode modules",
-    "test": "npm run compile-test && mocha -r ts-node/register test/*.spec.ts",
+    "test": "npm run compile-test && nyc mocha",
     "field-test": "npm run compile-test && mocha -r ts-node/register test/*.field.ts"
   },
   "repository": {
@@ -24,12 +24,14 @@
   },
   "homepage": "https://github.com/skazska/abstract-aws-service-model#readme",
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^0.1.3",
     "@types/aws-lambda": "^8.10.31",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.1",
+    "@types/node": "^12.7.2",
     "chai": "^4.2.0",
     "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
     "sinon": "^7.4.1",
     "sinon-chai": "^3.3.0",
     "ts-node": "^8.3.0",
@@ -37,7 +39,7 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@skazska/abstract-service-model": "^0.2.6",
-    "aws-sdk": "^2.507.0"
+    "@skazska/abstract-service-model": "^0.2.8",
+    "aws-sdk": "^2.512.0"
   }
 }

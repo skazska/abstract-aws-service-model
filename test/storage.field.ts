@@ -29,7 +29,7 @@ describe('dynamo-db-storage field test', () => {
     it('load - not found', async () => {
         let result = await storage.load({id: 'id'});
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('not found');
+        expect(result.errors[0].message).equal('not found');
         expect(result.errors[0].source).equal('dynamodb');
 
     });
@@ -37,7 +37,7 @@ describe('dynamo-db-storage field test', () => {
     it('load - fail', async () => {
         let result = await storage.load({panama: 'id'});
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('The provided key element does not match the schema');
+        expect(result.errors[0].message).equal('The provided key element does not match the schema');
         expect(result.errors[0].source).equal('dynamodb');
     });
 
@@ -52,7 +52,7 @@ describe('dynamo-db-storage field test', () => {
         let model: TestModel = <TestModel>modelFactory.dataModel({panama: 'id', name: 'test'}).get();
         let result = await storage.save(model);
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].description).equal('One or more parameter values were invalid: Missing the key id in the item');
+        expect(result.errors[0].message).equal('One or more parameter values were invalid: Missing the key id in the item');
         expect(result.errors[0].source).equal('dynamodb');
     });
 
@@ -70,7 +70,7 @@ describe('dynamo-db-storage field test', () => {
     //     let model: TestModel = <TestModel>modelFactory.dataModel({id: 'id', name: 'test'}).get();
     //     let result = await storage.save(model, {updateExpression: 'update'});
     //     expect(result.isFailure).equal(true);
-    //     expect(result.errors[0].description).equal('One or more parameter values were invalid: Missing the key id in the item');
+    //     expect(result.errors[0].message).equal('One or more parameter values were invalid: Missing the key id in the item');
     //     expect(result.errors[0].source).equal('dynamodb');
     // });
 
@@ -87,7 +87,7 @@ describe('dynamo-db-storage field test', () => {
         // client.update = sinon.spy(fail(new Error('error')));
         // result = await storage.save(model, {updateExpression: 'update'});
         // expect(result.isFailure).equal(true);
-        // expect(result.errors[0].description).equal('error');
+        // expect(result.errors[0].message).equal('error');
         // expect(result.errors[0].source).equal('dynamodb');
     // });
 
