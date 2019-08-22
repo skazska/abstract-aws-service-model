@@ -1,4 +1,4 @@
-import {GenericModel, GenericModelFactory, IGenericModelOptions, IModelDataAdepter, ModelValidationResult, GenericResult,
+import {GenericModel, GenericModelFactory, IModelOptions, IModelDataAdepter, ModelValidationResult, GenericResult,
     IModelError,
     success} from "@skazska/abstract-service-model";
 
@@ -15,7 +15,7 @@ export class TestModel extends GenericModel<ITestKey, ITestProps> {
         super(key, properties);
     }
 
-    protected setOptions(options: IGenericModelOptions<ITestKey, ITestProps>): any {}
+    protected setOptions(options: IModelOptions) {}
     validate(): ModelValidationResult { return undefined;}
 }
 
