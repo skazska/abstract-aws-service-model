@@ -1,5 +1,5 @@
 import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
-import {HandleResult, success, IError, AbstractIO, IIOOptions} from "@skazska/abstract-service-model";
+import {HandleResult, success, IError, AbstractIO, IIOOptions, isAuthError} from "@skazska/abstract-service-model";
 
 // APIGatewayProxyResult
 // statusCode: number;
@@ -51,8 +51,14 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
     }
 
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
+        let statusCode = STAGE_TO_STATUS[stage];
+        let error = errors[0];
+        if (isAuthError(error)) {
+            statusCode = 403;
+            message = error.message;
+        }
         return success({
-            statusCode: STAGE_TO_STATUS[stage],
+            statusCode: statusCode,
             body: JSON.stringify({
                 message: message,
                 errors: errors.map(err => {
