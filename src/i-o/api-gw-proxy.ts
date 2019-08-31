@@ -95,7 +95,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
      * @param input
      */
     protected authTokens(input: IAwsApiGwProxyInput): IAuthTokenResult {
-        let token = input.event.headers && input.event.headers['x-auth-token'];
+        const token = input.event.headers && input.event.headers['x-auth-token'];
         if (!token) return failure([AbstractAuth.error('x-auth-token header missing')]);
         return success(token);
     }
