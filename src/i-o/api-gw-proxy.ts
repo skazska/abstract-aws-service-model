@@ -1,5 +1,5 @@
 import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
-import {HandleResult, success, IError, AbstractIO, IIOOptions, isAuthError} from "@skazska/abstract-service-model";
+import {HandleResult, success, IError, AbstractIO, IIOOptions, isAuthError, IAuthTokenResult, failure, AbstractAuth} from "@skazska/abstract-service-model";
 
 // APIGatewayProxyResult
 // statusCode: number;
@@ -50,12 +50,24 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
         super(executable, authenticator, { ...defaultOptions, ...(options || {})});
     }
 
+    protected authTokens(input: IAwsApiGwProxyInput): IAuthTokenResult {
+        let token = input.event.headers && input.event.headers['x-auth-token'];
+        if (!token) return failure([AbstractAuth.error('x-auth-token header missing')]);
+        return success(token);
+    }
+
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
-        let statusCode = STAGE_TO_STATUS[stage];
+        let headers :[];
+        let statusCode :number;
         let error = errors[0];
-        if (isAuthError(error)) {
+        if (message === "can't extract tokens") {
+            statusCode = 401;
+            message = 'Unauthorized'
+        } else if (isAuthError(error)) {
             statusCode = 403;
             message = error.message;
+        } else {
+            statusCode = STAGE_TO_STATUS[stage];
         }
         return success({
             statusCode: statusCode,
