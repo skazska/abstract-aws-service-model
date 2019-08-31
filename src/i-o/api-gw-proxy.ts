@@ -1,5 +1,24 @@
 import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
-import {HandleResult, success, IError, AbstractIO, IIOOptions, isAuthError, IAuthTokenResult, failure, AbstractAuth} from "@skazska/abstract-service-model";
+import {
+    HandleResult,
+    success,
+    IError,
+    AbstractIO,
+    IIOOptions,
+    isAuthError,
+    IAuthTokenResult,
+    failure,
+    AbstractAuth,
+    AbstractExecutable,
+    IAuth
+} from "@skazska/abstract-service-model";
+
+/**
+ * Module provides AwsApiGwProxyIO<EI, EO> class and it's interfaces, which partially implements IO processing for
+ * AWS ApiGw proxy method lambda invocation, it implements converting executable success and failure to response for
+ * AWS ApiGw, x-auth-token header extraction for authenticator, handler needs to be wrapped with something
+ * packing event, context, callback into IAwsApiGwProxyInput
+ */
 
 // APIGatewayProxyResult
 // statusCode: number;
@@ -19,16 +38,26 @@ const STAGE_TO_STATUS = {
     'encode': 500
 };
 
+/**
+ * interface of handler input type
+ */
 export interface IAwsApiGwProxyInput {
     event :APIGatewayProxyEvent,
     context :Context,
     callback :APIGatewayProxyCallback
 }
 
+/**
+ * interface of AwsApiGwProxyIO constructor options
+ */
 export interface IAwsApiGwProxyIOOptions extends IIOOptions {
+    // response status for success (defaults to 200)
     successStatus? :number,
+    // content type header value for response (defaults to application/json)
     contentType?: string,
-    bodySerializer?: (data: any) => string
+    // function to be used to serialize executable success into response body (defaults to JSON.stringify)
+    bodySerializer?: (data: any) => string,
+    // indicate that serialized response body needs to be base64 encoded (defaults to false)
     doBase64Encode?: boolean
 }
 
@@ -39,25 +68,45 @@ const defaultOptions :IAwsApiGwProxyIOOptions = {
     doBase64Encode: false
 };
 
+/**
+ * Abstract generic class of input and output types of executable to run, provides AWS ApiGw proxy method lambga
+ * invocation
+ * handler
+ */
 export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyInput, EI, EO, APIGatewayProxyResult> {
     protected options :IAwsApiGwProxyIOOptions;
 
+    /**
+     * constructor
+     * @param executable - executable to run
+     * @param authenticator - authenticator to check auth token
+     * @param options - options
+     */
     protected constructor(
-        executable,
-        authenticator,
-        options?: IAwsApiGwProxyIOOptions
+        executable :AbstractExecutable<EI, EO>,
+        authenticator? :IAuth,
+        options? :IAwsApiGwProxyIOOptions
     ) {
         super(executable, authenticator, { ...defaultOptions, ...(options || {})});
     }
 
+    /**
+     * returns x-auth-token header value or fails
+     * @param input
+     */
     protected authTokens(input: IAwsApiGwProxyInput): IAuthTokenResult {
         let token = input.event.headers && input.event.headers['x-auth-token'];
         if (!token) return failure([AbstractAuth.error('x-auth-token header missing')]);
         return success(token);
     }
 
+    /**
+     * prepares failure response
+     * @param stage - stage at which failure occurred
+     * @param message - failure message
+     * @param errors - failure errors
+     */
     protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
-        let headers :[];
         let statusCode :number;
         let error = errors[0];
         if (message === "can't extract tokens") {
@@ -65,7 +114,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
             message = 'Unauthorized'
         } else if (isAuthError(error)) {
             statusCode = 403;
-            message = error.message;
+            message = 'Forbidden';
         } else {
             statusCode = STAGE_TO_STATUS[stage];
         }
@@ -87,6 +136,10 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
         });
     };
 
+    /**
+     * prepares success response
+     * @param result - executable response
+     */
     protected success(result: EO) :APIGatewayProxyResult {
         const resp = {
             statusCode: this.options.successStatus,
