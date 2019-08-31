@@ -1,7 +1,7 @@
 .aws-cfg.json
 .deploy-aws-cfg.json
 
-#package-lock.json
+package-lock.json
 
 .idea
 dist
