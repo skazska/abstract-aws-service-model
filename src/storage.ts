@@ -1,4 +1,13 @@
-import {AbstractModelStorage, IModelStorageConfig, GenericModel, failure, GenericResult, success, IStorageError, IStorageOperationOptions} from "@skazska/abstract-service-model";
+import {
+    AbstractModelStorage,
+    IModelStorageConfig,
+    GenericModel,
+    failure,
+    GenericResult,
+    success,
+    IStorageError,
+    IStorageOperationOptions
+} from "@skazska/abstract-service-model";
 
 import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
 import {DynamoDB} from "aws-sdk";
@@ -136,9 +145,13 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                 });
             } else {
                 // put
+                let dataResult = this.modelFactory.data(data);
+                if (dataResult.isFailure)
+                    return resolve(failure([AbstractModelStorage.error('model to Item convert error')]));
+
                 let params = attachParams({
                     TableName: this._table,
-                    Item: objectToAttributeMap(this.modelFactory.data(data))
+                    Item: objectToAttributeMap(dataResult.get())
                 }, options);
                 this._client.put(<DocumentClient.PutItemInput>params, (err, response) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
