@@ -103,7 +103,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
-    load(key :K, options: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
+    load(key :K, options?: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
         return new Promise((resolve) => {
             const params = attachParams({
                 TableName: this._table,
@@ -116,7 +116,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
             });
         });
     }
-    save(data :GenericModel<K,P>, options: IDynamodbStorageSaveOptions)
+    save(data :GenericModel<K,P>, options?: IDynamodbStorageSaveOptions)
         :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
 
         const result = response => {
