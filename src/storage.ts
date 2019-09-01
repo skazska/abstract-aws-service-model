@@ -12,11 +12,22 @@ import {
 import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
 import {DynamoDB} from "aws-sdk";
 
+/**
+ * Module provides DynamodbModelStorage class and related interfaces to use as a base for crud storage for model in
+ * AWS DynamoDB
+ */
+
+/**
+ * constructor config
+ */
 export interface IDynamodbModelStorageConfig<K, P> extends IModelStorageConfig<K,P> {
     client :DocumentClient;
     table: string;
 }
 
+/**
+ * common dynamodb operation options
+ */
 export interface IDynamodbStorageOperatorOptions extends IStorageOperationOptions {
     returnConsumedCapacity?: DocumentClient.ReturnConsumedCapacity;
     /**
@@ -25,6 +36,9 @@ export interface IDynamodbStorageOperatorOptions extends IStorageOperationOption
     expressionAttributeNames? :DocumentClient.ExpressionAttributeNameMap;
 }
 
+/**
+ * dynamodb get specific options
+ */
 export interface IDynamodbStorageGetOptions extends IDynamodbStorageOperatorOptions {
     /**
      * Determines the read consistency model: If set to true, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
@@ -36,6 +50,9 @@ export interface IDynamodbStorageGetOptions extends IDynamodbStorageOperatorOpti
     projectionExpression? :DocumentClient.ProjectionExpression;
 }
 
+/**
+ * dynamodb (put|update|delete) specific options
+ */
 interface IDynamodbStorageModifyOptions extends IDynamodbStorageOperatorOptions {
     /**
      * Use ReturnValues if you want to get the item attributes as they appeared before they were updated with the PutItem request. For PutItem, the valid values are:    NONE - If ReturnValues is not specified, or if its value is NONE, then nothing is returned. (This setting is the default for ReturnValues.)    ALL_OLD - If PutItem overwrote an attribute name-value pair, then the content of the old item is returned.    The ReturnValues parameter is used by several DynamoDB operations; however, PutItem does not recognize any values other than NONE or ALL_OLD.
@@ -59,6 +76,9 @@ interface IDynamodbStorageModifyOptions extends IDynamodbStorageOperatorOptions 
     expressionAttributeValues?: DocumentClient.ExpressionAttributeValueMap;
 }
 
+/**
+ * dynamodb (put|update) specific options
+ */
 export interface IDynamodbStorageSaveOptions extends IDynamodbStorageModifyOptions {
     /**
      * An expression that defines one or more attributes to be updated, the action to be performed on them, and new values for them. The following action values are available for UpdateExpression.    SET - Adds one or more attributes and values to an item. If any of these attributes already exist, they are replaced by the new values. You can also use SET to add or subtract from an attribute that is of type Number. For example: SET myNum = myNum + :val   SET supports the following functions:    if_not_exists (path, operand) - if the item does not contain an attribute at the specified path, then if_not_exists evaluates to operand; otherwise, it evaluates to path. You can use this function to avoid overwriting an attribute that may already be present in the item.    list_append (operand, operand) - evaluates to a list with a new element added to it. You can append the new element to the start or the end of the list by reversing the order of the operands.   These function names are case-sensitive.    REMOVE - Removes one or more attributes from an item.    ADD - Adds the specified value to the item, if the attribute does not already exist. If the attribute does exist, then the behavior of ADD depends on the data type of the attribute:   If the existing attribute is a number, and if Value is also a number, then Value is mathematically added to the existing attribute. If Value is a negative number, then it is subtracted from the existing attribute.  If you use ADD to increment or decrement a number value for an item that doesn't exist before the update, DynamoDB uses 0 as the initial value. Similarly, if you use ADD for an existing item to increment or decrement an attribute value that doesn't exist before the update, DynamoDB uses 0 as the initial value. For example, suppose that the item you want to update doesn't have an attribute named itemcount, but you decide to ADD the number 3 to this attribute anyway. DynamoDB will create the itemcount attribute, set its initial value to 0, and finally add 3 to it. The result will be a new itemcount attribute in the item, with a value of 3.    If the existing data type is a set and if Value is also a set, then Value is added to the existing set. For example, if the attribute value is the set [1,2], and the ADD action specified [3], then the final attribute value is [1,2,3]. An error occurs if an ADD action is specified for a set attribute and the attribute type specified does not match the existing set type.  Both sets must have the same primitive data type. For example, if the existing data type is a set of strings, the Value must also be a set of strings.    The ADD action only supports Number and set data types. In addition, ADD can only be used on top-level attributes, not nested attributes.     DELETE - Deletes an element from a set. If a set of values is specified, then those values are subtracted from the old set. For example, if the attribute value was the set [a,b,c] and the DELETE action specifies [a,c], then the final attribute value is [b]. Specifying an empty set is an error.  The DELETE action only supports set data types. In addition, DELETE can only be used on top-level attributes, not nested attributes.    You can have many actions in a single expression, such as the following: SET a=:value1, b=:value2 DELETE :value3, :value4, :value5  For more information on update expressions, see Modifying Items and Attributes in the Amazon DynamoDB Developer Guide.
@@ -66,9 +86,16 @@ export interface IDynamodbStorageSaveOptions extends IDynamodbStorageModifyOptio
     updateExpression?: DocumentClient.UpdateExpression;
 }
 
+/**
+ * dynamodb (delete) specific options
+ */
 export interface IDynamodbStorageDelOptions extends IDynamodbStorageModifyOptions {}
 
-// sets properties from options to params capitalizing their names
+/**
+ * sets properties from options to params capitalizing their names
+ * @param params - params to add to
+ * @param options - options to be added to params
+ */
 const attachParams = (params :object, options :any) => {
     Object.keys(options||{}).forEach(key => {
         params[key.charAt(0).toUpperCase() + key.slice(1)] = options[key];
@@ -76,31 +103,50 @@ const attachParams = (params :object, options :any) => {
     return params;
 };
 
-// converts Object data to DocumentClient.Key
+/**
+ * converts Object data to DocumentClient.Key
+ * @param obj - object with keys
+ */
 const objectToKey = (obj :any) :DocumentClient.Key => {
     //TODO there possibly some transformations may be required
     return <DocumentClient.Key>obj;
 };
 
-// converts Object data to DocumentClient.AttributeMap
+/**
+ * converts Object data to DocumentClient.AttributeMap
+ * @param obj - attributes
+ */
 const objectToAttributeMap = (obj :any) :DocumentClient.AttributeMap => {
     //TODO there possibly some transformations may be required
     return <DocumentClient.AttributeMap>obj;
 };
 
+/**
+ * Dynamodb Model Storage
+ * K - key structure
+ * P - properties structure
+ */
 export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
-    private readonly _client :DocumentClient;
-    private readonly _table: string;
+    // AWS dynamodb document client
+    readonly client :DocumentClient;
+    // AWS dynamodb table name
+    readonly table: string;
 
+    /**
+     * constructor
+     * @param props - Dynamodb Model Storage Config
+     */
     constructor(props :IDynamodbModelStorageConfig<K,P>) {
         super(props);
-        this._client = props.client;
-        this._table = props.table
+        this.client = props.client;
+        this.table = props.table
     }
 
-    get client() :DocumentClient { return this._client; }
-    get table() :string { return this._table; }
-
+    /**
+     * allows to implement custom processing of put|update before return
+     * @param model
+     * @param response
+     */
     protected processModifyResult(
         model :GenericModel<K,P>,
         response :DocumentClient.UpdateItemOutput|DocumentClient.PutItemOutput) :GenericResult<GenericModel<K,P>, IStorageError>
@@ -108,38 +154,49 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
         return success(model);
     }
 
+    /**
+     * allows to get id for new entity (not implemented, returns failure)
+     * @param options
+     */
     newKey(options?: IStorageOperationOptions): Promise<GenericResult<K, IStorageError>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
+    /**
+     * loads and returns entity model from storage
+     * @param key - key
+     * @param options - dynamodb options for get
+     */
     load(key :K, options?: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
         return new Promise((resolve) => {
             const params = attachParams({
-                TableName: this._table,
+                TableName: this.table,
                 Key: objectToKey(key)
             }, options);
-            this._client.get(<DocumentClient.GetItemInput>params, (err, data) => {
+            this.client.get(<DocumentClient.GetItemInput>params, (err, data) => {
                 if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
                 if (!data.Item) return resolve(failure([AbstractModelStorage.error('not found', 'dynamodb')]));
                 resolve(this.modelFactory.dataModel(data.Item));
             });
         });
     }
+
+    /**
+     * saves model to storage, returns model
+     * @param data - model
+     * @param options - dynamodb options for (put|update)
+     */
     save(data :GenericModel<K,P>, options?: IDynamodbStorageSaveOptions)
         :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
-
-        const result = response => {
-            return success(data)
-        };
 
         return new Promise((resolve) => {
             if (options && options.updateExpression) {
                 // update
                 let params = attachParams({
-                    TableName: this._table,
+                    TableName: this.table,
                     Key: objectToKey(data.getKey())
                 }, options);
-                this._client.update(<DocumentClient.UpdateItemInput>params, (err, response) => {
+                this.client.update(<DocumentClient.UpdateItemInput>params, (err, response) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
                     resolve(this.processModifyResult(data, response));
                 });
@@ -150,23 +207,29 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                     return resolve(failure([AbstractModelStorage.error('model to Item convert error')]));
 
                 let params = attachParams({
-                    TableName: this._table,
+                    TableName: this.table,
                     Item: objectToAttributeMap(dataResult.get())
                 }, options);
-                this._client.put(<DocumentClient.PutItemInput>params, (err, response) => {
+                this.client.put(<DocumentClient.PutItemInput>params, (err, response) => {
                     if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
                     resolve(this.processModifyResult(data, response));
                 });
             }
         });
     }
+
+    /**
+     * removes entity from storage
+     * @param key - key
+     * @param options - dynamodb del options
+     */
     erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<any, IStorageError>> {
         return new Promise((resolve) => {
             const params = attachParams({
-                TableName: this._table,
+                TableName: this.table,
                 Key: objectToKey(key)
             }, options);
-            this._client.delete(<DocumentClient.DeleteItemInput>params, (err, data) => {
+            this.client.delete(<DocumentClient.DeleteItemInput>params, (err, data) => {
                 if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
                 resolve(success(data));
             });
