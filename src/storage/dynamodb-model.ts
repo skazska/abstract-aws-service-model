@@ -11,6 +11,7 @@ import {
 
 import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
 import {DynamoDB} from "aws-sdk";
+import {attachParams} from "./utils";
 
 /**
  * Module provides DynamodbModelStorage class and related interfaces to use as a base for crud storage for model in
@@ -91,17 +92,6 @@ export interface IDynamodbStorageSaveOptions extends IDynamodbStorageModifyOptio
  */
 export interface IDynamodbStorageDelOptions extends IDynamodbStorageModifyOptions {}
 
-/**
- * sets properties from options to params capitalizing their names
- * @param params - params to add to
- * @param options - options to be added to params
- */
-const attachParams = (params :object, options :any) => {
-    Object.keys(options||{}).forEach(key => {
-        params[key.charAt(0).toUpperCase() + key.slice(1)] = options[key];
-    });
-    return params;
-};
 
 /**
  * converts Object data to DocumentClient.Key
@@ -174,7 +164,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
                 Key: objectToKey(key)
             }, options);
             this.client.get(<DocumentClient.GetItemInput>params, (err, data) => {
-                if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
+                if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb', err)]));
                 if (!data.Item) return resolve(failure([AbstractModelStorage.error('not found', 'dynamodb')]));
                 resolve(this.modelFactory.dataModel(data.Item));
             });
