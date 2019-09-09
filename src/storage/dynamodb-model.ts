@@ -213,7 +213,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * @param key - key
      * @param options - dynamodb del options
      */
-    erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<any, IStorageError>> {
+    erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<boolean, IStorageError>> {
         return new Promise((resolve) => {
             const params = attachParams({
                 TableName: this.table,
@@ -221,7 +221,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
             }, options);
             this.client.delete(<DocumentClient.DeleteItemInput>params, (err, data) => {
                 if (err) return resolve(failure([AbstractModelStorage.error(err.message, 'dynamodb')]));
-                resolve(success(data));
+                resolve(success(true));
             });
         });
     }

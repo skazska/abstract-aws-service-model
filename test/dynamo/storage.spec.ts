@@ -104,4 +104,27 @@ describe('dynamo-db-storage', () => {
         expect(result.errors[0].source).equal('dynamodb');
     });
 
+    it('erase', async () => {
+        // result
+        storage = newStorage(client, modelFactory);
+        client.delete = sinon.spy(success({}));
+        let result = await storage.erase({id: 'id'});
+        expect(result.get()).eql(true);
+        expect(client.delete.args[0][0]).eql({'TableName': 'test', 'Key': {id: 'id'}});
+
+        // not found
+        client.delete = sinon.spy(success({}));
+        result = await storage.erase({id: 'id'});
+        expect(result.isFailure).equal(true);
+        expect(result.errors[0].message).equal('not found');
+        expect(result.errors[0].source).equal('dynamodb');
+
+        // fail
+        client.delete = sinon.spy(fail(new Error('error')));
+        result = await storage.erase({id: 'id'});
+        expect(result.isFailure).equal(true);
+        expect(result.errors[0].message).equal('error');
+        expect(result.errors[0].source).equal('dynamodb');
+    });
+
 });

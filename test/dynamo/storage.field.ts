@@ -15,10 +15,12 @@ const newStorage = (client :any, modelFactory :TestModelFactory) :DynamodbTestSt
     })
 };
 
-describe('dynamo-db-storage field test', () => {
+describe('dynamo-db-storage field test', function () {
     let storage = null;
     let client = null;
     let modelFactory = new TestModelFactory();
+
+    this.timeout(10000);
 
     before(() => {
         awsConfig.loadFromPath('./test/.aws-cfg.json');
@@ -91,5 +93,19 @@ describe('dynamo-db-storage field test', () => {
         // expect(result.errors[0].source).equal('dynamodb');
     // });
 
+    it('erase - success', async () => {
+        let result = await storage.erase({id: 'id'});
+        expect(result.isFailure).not.equal(true);
+        result = result.get();
+        expect(result).eql(true);
+    });
+
+    it('load - not found', async () => {
+        let result = await storage.load({id: 'id'});
+        expect(result.isFailure).equal(true);
+        expect(result.errors[0].message).equal('not found');
+        expect(result.errors[0].source).equal('dynamodb');
+
+    });
 
 });
