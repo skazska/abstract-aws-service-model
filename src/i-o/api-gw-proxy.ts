@@ -1,6 +1,5 @@
 import {APIGatewayProxyCallback, APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda";
 import {
-    HandleResult,
     success,
     IError,
     AbstractIO,
@@ -106,7 +105,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
      * @param message - failure message
      * @param errors - failure errors
      */
-    protected fail(stage: string, message: string, errors: IError[]) :HandleResult<APIGatewayProxyResult> {
+    protected fail(stage: string, message: string, errors: IError[]) :APIGatewayProxyResult {
         let statusCode :number;
         let error = errors[0];
         if (message === "can't extract tokens") {
@@ -118,7 +117,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
         } else {
             statusCode = STAGE_TO_STATUS[stage];
         }
-        return success({
+        return {
             statusCode: statusCode,
             body: JSON.stringify({
                 message: message,
@@ -133,7 +132,7 @@ export abstract class AwsApiGwProxyIO<EI, EO> extends AbstractIO<IAwsApiGwProxyI
                 'Content-Type': 'application/json'
             },
             isBase64Encoded: false
-        });
+        };
     };
 
     /**
