@@ -10,8 +10,9 @@ import {
     success
 } from "@skazska/abstract-service-model";
 
-import {AWSError, S3} from 'aws-sdk'
+import {AWSError, DynamoDB, S3} from 'aws-sdk'
 import {attachParams} from "./utils";
+import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
 
 
 /**
@@ -133,6 +134,11 @@ export class S3Storage<D, S> implements IStorage<string,D> {
             return failure([storageError(message, 's3', e)])
         }
 
+    }
+
+    // returns default storage client
+    static getDefaultClient (options? :S3.Types.ClientConfiguration) :S3 {
+        return new S3(options);
     }
 }
 
