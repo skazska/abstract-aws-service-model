@@ -37,7 +37,7 @@ describe('secrets-storage', () => {
         // not found
         result = await storage.load('@-api-no-secrets');
         expect(result.isFailure).to.be.true;
-        let error = result.errors()[0];
+        let error = result.errors[0];
         expect(error.message).eql('not found');
     });
 
