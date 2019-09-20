@@ -91,7 +91,7 @@ describe('secrets-storage', () => {
         secretStub.getSecretValue.callsFake(fail(new Error('error')));
         result = await storage.load('secretName');
         expect(result.isFailure).equal(true);
-        expect(result.errors[0].message).equal('error');
+        expect(result.errors[0].message).equal('');
         expect(result.errors[0].source).equal('secrets manager');
     });
 

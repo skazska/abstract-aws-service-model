@@ -13,6 +13,7 @@ import {
 import {IRawDataAdapter, RawDataJSONAdapter} from './s3';
 import {attachParams} from "./utils";
 import {GetSecretValueRequest} from "aws-sdk/clients/secretsmanager";
+import {message} from "aws-sdk/clients/sns";
 
 
 export interface ISecretStorageConfig<D> extends IStorageConfig {
@@ -47,7 +48,7 @@ export class SecretStorage<D> implements IStorage<string, D> {
             data = await this.client.getSecretValue(params).promise();
         } catch (e) {
             return failure([ storageError(
-                e.code === 'ResourceNotFoundException' ? 'not found' : e.code,
+                e.code === 'ResourceNotFoundException' ? 'not found' : (e.code || e.message),
                 'secrets manager'
             ) ]);
         }
