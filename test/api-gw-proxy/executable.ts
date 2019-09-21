@@ -6,7 +6,7 @@ export class TestExecutable extends AbstractExecutable<string, string> {
         super(props);
     }
 
-    protected async _execute(params: string): Promise<GenericResult<string, IRunError>> {
+    protected async _execute(params: string): Promise<GenericResult<string>> {
 
         return Promise.resolve(success(params.split('').reverse().join('')));
     }

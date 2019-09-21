@@ -40,7 +40,7 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
-    "@skazska/abstract-service-model": "^0.5.0",
-    "aws-sdk": "^2.531.0"
+    "@skazska/abstract-service-model": "^0.5.1",
+    "aws-sdk": "^2.533.0"
   }
 }

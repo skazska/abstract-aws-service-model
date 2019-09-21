@@ -92,7 +92,7 @@ export class S3Storage<D, S> implements IStorage<string,D> {
      * no new key is implemented
      * @param options
      */
-    newKey(options?: IStorageOperationOptions): Promise<GenericResult<string, IStorageError>> {
+    newKey(options?: IStorageOperationOptions): Promise<GenericResult<string>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
@@ -102,7 +102,7 @@ export class S3Storage<D, S> implements IStorage<string,D> {
      * @param options - supported s3 getObject options
      * @returns promise of @skazska/abstract-service-model.GenericResult
      */
-    async load(key: string, options?: IS3StorageGetOptions): Promise<GenericResult<D, IStorageError>> {
+    async load(key: string, options?: IS3StorageGetOptions): Promise<GenericResult<D>> {
         const params = attachParams({
             Bucket: this.bucket,
             Key: key, /* required */
@@ -131,7 +131,7 @@ export class S3Storage<D, S> implements IStorage<string,D> {
      * @param options - supported s3 putObject options
      * @returns promise of @skazska/abstract-service-model.GenericResult
      */
-    async save(data: D, options: IS3StorageSaveOptions): Promise<GenericResult<D, IStorageError>> {
+    async save(data: D, options: IS3StorageSaveOptions): Promise<GenericResult<D>> {
         const params = attachParams({
             Bucket: this.bucket,
             ACL: 'private',
@@ -151,7 +151,7 @@ export class S3Storage<D, S> implements IStorage<string,D> {
      * @param key - object key
      * @param options - supported s3 deleteObject options
      */
-    async erase(key: string, options?: IS3StorageDelOptions): Promise<GenericResult<boolean, IStorageError>> {
+    async erase(key: string, options?: IS3StorageDelOptions): Promise<GenericResult<boolean>> {
         const params = attachParams({
             Bucket: this.bucket,
             Key: key /* required */

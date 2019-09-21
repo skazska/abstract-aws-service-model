@@ -14,7 +14,7 @@ export class TestIO extends AwsApiGwProxyIO<string, string> {
         super(executable, authenticator, options);
     }
 
-    protected data(inputs: IAwsApiGwProxyInput): GenericResult<string, IError> {
+    protected data(inputs: IAwsApiGwProxyInput): GenericResult<string> {
         return success(inputs.event.pathParameters.login);
     }
 

@@ -8,8 +8,8 @@ export class AuthTest extends AbstractAuth {
         super(identityConstructor, options);
     }
 
-    protected verify(secret: any, token :string, realm? :string) :Promise<GenericResult<IAuthData, IAuthError>> {
-        let result :GenericResult<IAuthData, IAuthError>;
+    protected verify(secret: any, token :string, realm? :string) :Promise<GenericResult<IAuthData>> {
+        let result :GenericResult<IAuthData>;
         if (token === 'right' ) {
             result = success(this._data);
         } else {
@@ -18,7 +18,7 @@ export class AuthTest extends AbstractAuth {
         return Promise.resolve(result);
     };
 
-    grant(details: IAccessDetails, subject: string, realms?: string[]): Promise<GenericResult<string, IAuthError>> {
+    grant(details: IAccessDetails, subject: string, realms?: string[]): Promise<GenericResult<string>> {
         this._data = {details: details, subject: subject, realms: realms};
         this._realms = realms;
         return Promise.resolve(success('right'));

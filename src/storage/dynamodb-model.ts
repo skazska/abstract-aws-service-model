@@ -140,7 +140,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      */
     protected processModifyResult(
         model :GenericModel<K,P>,
-        response :DocumentClient.UpdateItemOutput|DocumentClient.PutItemOutput) :GenericResult<GenericModel<K,P>, IStorageError>
+        response :DocumentClient.UpdateItemOutput|DocumentClient.PutItemOutput) :GenericResult<GenericModel<K,P>>
     {
         return success(model);
     }
@@ -149,7 +149,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * allows to get id for new entity (not implemented, returns failure)
      * @param options
      */
-    newKey(options?: IStorageOperationOptions): Promise<GenericResult<K, IStorageError>> {
+    newKey(options?: IStorageOperationOptions): Promise<GenericResult<K>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
@@ -160,7 +160,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * @return @skazska/abstract-service-model.GenericResult of @skazska/abstract-service-model.GenericModel<K,P>
      *     representing record retrieved
      */
-    load(key :K, options?: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
+    load(key :K, options?: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>>> {
         return new Promise((resolve) => {
             const params = attachParams({
                 TableName: this.table,
@@ -181,7 +181,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * @returns data itself
      */
     save(data :GenericModel<K,P>, options?: IDynamodbStorageSaveOptions)
-        :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
+        :Promise<GenericResult<GenericModel<K,P>>> {
 
         return new Promise((resolve) => {
             if (options && options.updateExpression) {
@@ -217,7 +217,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * @param key - key
      * @param options - dynamodb del options
      */
-    erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<boolean, IStorageError>> {
+    erase(key :K, options? :IDynamodbStorageDelOptions):Promise<GenericResult<boolean>> {
         return new Promise((resolve) => {
             const params = attachParams({
                 TableName: this.table,

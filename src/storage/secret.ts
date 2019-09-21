@@ -47,7 +47,7 @@ export class SecretStorage<D> implements IStorage<string, D> {
     }
 
     /** not supported returns failure */
-    newKey(options?: IStorageOperationOptions): Promise<GenericResult<string, IStorageError>> {
+    newKey(options?: IStorageOperationOptions): Promise<GenericResult<string>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
@@ -57,7 +57,7 @@ export class SecretStorage<D> implements IStorage<string, D> {
      * @param options - supported Secrets Manager getSecretValue options
      * @returns promise of @skazska/abstract-service-model.GenericResult
      */
-    async load(secretName: string, options?: ISecretStorageGetOptions): Promise<GenericResult<D, IStorageError>> {
+    async load(secretName: string, options?: ISecretStorageGetOptions): Promise<GenericResult<D>> {
         let params :GetSecretValueRequest = attachParams({
             SecretId: secretName
         }, options);
@@ -97,7 +97,7 @@ export class SecretStorage<D> implements IStorage<string, D> {
      * @param options - supported Secrets Manager putSecret options
      * @returns promise of @skazska/abstract-service-model.GenericResult
      */
-    async save(data: D, options: IStorageOperationOptions): Promise<GenericResult<D, IStorageError>> {
+    async save(data: D, options: IStorageOperationOptions): Promise<GenericResult<D>> {
         return Promise.resolve(failure([storageError('save is not supported', 'SecretStorage')]))
     }
 
@@ -108,7 +108,7 @@ export class SecretStorage<D> implements IStorage<string, D> {
      * @param options - supported Secrets Manager deleteSecret options
      * @returns promise of @skazska/abstract-service-model.GenericResult
      */
-    async erase(secretName: string, options?: IStorageOperationOptions): Promise<GenericResult<boolean, IStorageError>> {
+    async erase(secretName: string, options?: IStorageOperationOptions): Promise<GenericResult<boolean>> {
         return Promise.resolve(failure([storageError('erase is not supported', 'SecretStorage')]))
     }
 
