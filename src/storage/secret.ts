@@ -1,3 +1,6 @@
+/**
+ * Module provides SecretStorage class and related interfaces to use as a base for storage in AWS SecretsManager
+ */
 import {SecretsManager} from 'aws-sdk';
 import {
     IStorageConfig,
@@ -10,34 +13,50 @@ import {
     IStorageOperationOptions,
     storageError
 } from '@skazska/abstract-service-model';
-import {IRawDataAdapter, RawDataJSONAdapter} from './s3';
+import {IRawDataAdapter} from './s3';
 import {attachParams} from "./utils";
 import {GetSecretValueRequest} from "aws-sdk/clients/secretsmanager";
-import {message} from "aws-sdk/clients/sns";
 
-
+/** Secret storage constructor config */
 export interface ISecretStorageConfig<D> extends IStorageConfig {
+    /** AWS sdk Secrets Manager client */
     client :SecretsManager;
+    /** data adapter to serialize/deserialize data in JSON string */
     dataAdapter :IRawDataAdapter<D, string>;
 }
 
+/** Secrets Manager getSecretValue specific options structure */
 export interface ISecretStorageGetOptions {
     versionId: string,
     versionStage: string
 }
 
+/**
+ * Implementation of IStorage to be used with AWS Secrets storage
+ * @typeparam D - type of input/output data
+ */
 export class SecretStorage<D> implements IStorage<string, D> {
+    /** AWS sdk Secrets Manager client */
     readonly client :SecretsManager;
+    /** data adapter to serialize/deserialize data in JSON string */
     readonly dataAdapter: IRawDataAdapter<D, string>;
+
     constructor(options :ISecretStorageConfig<D>) {
         this.client = options.client;
         this.dataAdapter = options.dataAdapter;
     }
 
+    /** not supported returns failure */
     newKey(options?: IStorageOperationOptions): Promise<GenericResult<string, IStorageError>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
+    /**
+     * loads data from aws Secrets Manager by secretName
+     * @param secretName
+     * @param options - supported Secrets Manager getSecretValue options
+     * @returns promise of @skazska/abstract-service-model.GenericResult
+     */
     async load(secretName: string, options?: ISecretStorageGetOptions): Promise<GenericResult<D, IStorageError>> {
         let params :GetSecretValueRequest = attachParams({
             SecretId: secretName
@@ -71,14 +90,32 @@ export class SecretStorage<D> implements IStorage<string, D> {
 
     }
 
+    /**
+     * TODO
+     * Saves data to aws Secrets Manager with name (not implemented yet)
+     * @param data - data
+     * @param options - supported Secrets Manager putSecret options
+     * @returns promise of @skazska/abstract-service-model.GenericResult
+     */
     async save(data: D, options: IStorageOperationOptions): Promise<GenericResult<D, IStorageError>> {
         return Promise.resolve(failure([storageError('save is not supported', 'SecretStorage')]))
     }
 
-    async erase(key: string, options?: IStorageOperationOptions): Promise<GenericResult<boolean, IStorageError>> {
+    /**
+     * TODO
+     * Removes data from aws Secrets Manager by name (not implemented yet)
+     * @param secretName
+     * @param options - supported Secrets Manager deleteSecret options
+     * @returns promise of @skazska/abstract-service-model.GenericResult
+     */
+    async erase(secretName: string, options?: IStorageOperationOptions): Promise<GenericResult<boolean, IStorageError>> {
         return Promise.resolve(failure([storageError('erase is not supported', 'SecretStorage')]))
     }
 
+    /**
+     * returns default s3 Secrets Manager sdk client instance
+     * @param options
+     */
     static getDefaultClient(options? :SecretsManager.Types.ClientConfiguration) {
         return new SecretsManager(options);
     }

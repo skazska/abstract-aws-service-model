@@ -1,3 +1,7 @@
+/**
+ * Module provides S3Storage class and related interfaces to use as a base for storage for raw in AWS S3
+ */
+
 import {
     IStorage,
     IStorageConfig,
@@ -10,18 +14,14 @@ import {
     success
 } from "@skazska/abstract-service-model";
 
-import {AWSError, DynamoDB, S3} from 'aws-sdk'
+import {S3} from 'aws-sdk'
 import {attachParams} from "./utils";
-import {DocumentClient} from "aws-sdk/lib/dynamodb/document_client";
 
-
-/**
- * Module provides S3Storage class and related interfaces to use as a base for crud storage for raw in
- * AWS S3
- */
 
 /**
  * interface of raw data serialization adapter
+ * @typeparam D - type of data to be serialize
+ * @typeparam S - type of serialized data
  */
 export interface IRawDataAdapter<D,S> {
     serialize: (data: D) => S;
@@ -36,13 +36,13 @@ export interface IS3StorageOperatorOptions extends IStorageOperationOptions {
 }
 
 /**
- * dynamodb get specific options
+ * s3 get specific options
  */
 export interface IS3StorageGetOptions extends IS3StorageOperatorOptions {
 }
 
 /**
- * dynamodb (put|update) specific options
+ * s3 (putObject) specific options
  */
 export interface IS3StorageSaveOptions extends IS3StorageOperatorOptions {
     key :string;
@@ -50,37 +50,58 @@ export interface IS3StorageSaveOptions extends IS3StorageOperatorOptions {
 }
 
 /**
- * dynamodb (delete) specific options
+ * s3 (deleteObject) specific options
  */
 export interface IS3StorageDelOptions extends IS3StorageOperatorOptions {}
 
 
 /**
  * constructor config
+ * @typeparam D - type of data to input and output by storage
+ * @typeparam S - type of data to be converted to in storage
  */
 export interface IS3StorageConfig<D, S> extends IStorageConfig {
+    /** AWS sdk S3 client instance */
     client :S3;
+    /** data serialization adapter */
     dataAdapter: IRawDataAdapter<D, S>;
+    /** s3 bucket */
     bucket: string;
 }
 
 /**
- * generic raw sada s3 storage
+ * generic raw data s3 storage
+ * @typeparam D - type of data to input and output by storage
+ * @typeparam S - type of data to be converted to in storage
  */
 export class S3Storage<D, S> implements IStorage<string,D> {
+    /** AWS sdk S3 client instance */
     readonly client :S3;
-    readonly bucket :string;
+    /** data serialization adapter */
     readonly dataAdapter: IRawDataAdapter<D, S>;
+    /** s3 bucket */
+    readonly bucket :string;
+
     constructor(options :IS3StorageConfig<D, S>) {
         this.client = options.client;
         this.bucket = options.bucket;
         this.dataAdapter = options.dataAdapter;
     }
 
+    /**
+     * no new key is implemented
+     * @param options
+     */
     newKey(options?: IStorageOperationOptions): Promise<GenericResult<string, IStorageError>> {
         return Promise.resolve(failure([AbstractModelStorage.error('use natural key')]));
     }
 
+    /**
+     * Loads data object from s3 bucket by key
+     * @param key - object key
+     * @param options - supported s3 getObject options
+     * @returns promise of @skazska/abstract-service-model.GenericResult
+     */
     async load(key: string, options?: IS3StorageGetOptions): Promise<GenericResult<D, IStorageError>> {
         const params = attachParams({
             Bucket: this.bucket,
@@ -104,11 +125,16 @@ export class S3Storage<D, S> implements IStorage<string,D> {
 
     }
 
+    /**
+     * Saves data to object in s3 bucket with key
+     * @param data - data
+     * @param options - supported s3 putObject options
+     * @returns promise of @skazska/abstract-service-model.GenericResult
+     */
     async save(data: D, options: IS3StorageSaveOptions): Promise<GenericResult<D, IStorageError>> {
         const params = attachParams({
             Bucket: this.bucket,
             ACL: 'private',
-            // Key: data[0], /* required should be provided in options*/
             Body: this.dataAdapter.serialize(data)
         }, options);
 
@@ -120,6 +146,11 @@ export class S3Storage<D, S> implements IStorage<string,D> {
         }
     }
 
+    /**
+     * Removes data object in s3 bucket by key
+     * @param key - object key
+     * @param options - supported s3 deleteObject options
+     */
     async erase(key: string, options?: IS3StorageDelOptions): Promise<GenericResult<boolean, IStorageError>> {
         const params = attachParams({
             Bucket: this.bucket,
@@ -136,19 +167,23 @@ export class S3Storage<D, S> implements IStorage<string,D> {
 
     }
 
-    // returns default storage client
+    /**
+     * returns default storage client
+     */
     static getDefaultClient (options? :S3.Types.ClientConfiguration) :S3 {
         return new S3(options);
     }
 }
 
 /**
- * raw data to JSON serialization adapter
+ * raw data to JSON serialization/deserialization adapter
  */
 export class RawDataJSONAdapter implements IRawDataAdapter<any, string> {
+    /** converts JS data to JSON */
     serialize (data: any) :string {
         return JSON.stringify(data);
     };
+    /** converts JSON to JS data */
     deSerialize (data: string) :any {
         return JSON.parse(data);
     };

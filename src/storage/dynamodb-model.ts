@@ -1,3 +1,7 @@
+/**
+ * Module provides DynamodbModelStorage class and related interfaces to use as a base for crud storage for model in
+ * AWS DynamoDB
+ */
 import {
     AbstractModelStorage,
     IModelStorageConfig,
@@ -14,15 +18,12 @@ import {DynamoDB} from "aws-sdk";
 import {attachParams} from "./utils";
 
 /**
- * Module provides DynamodbModelStorage class and related interfaces to use as a base for crud storage for model in
- * AWS DynamoDB
- */
-
-/**
- * constructor config
+ * DynamodbModelStorage constructor config
  */
 export interface IDynamodbModelStorageConfig<K, P> extends IModelStorageConfig<K,P> {
+    /** AWS sdk dynamodb document client */
     client :DocumentClient;
+    /** table name */
     table: string;
 }
 
@@ -113,13 +114,13 @@ const objectToAttributeMap = (obj :any) :DocumentClient.AttributeMap => {
 
 /**
  * Dynamodb Model Storage
- * K - key structure
- * P - properties structure
+ * @typeparam K - key structure
+ * @typeparam P - properties structure
  */
 export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
-    // AWS dynamodb document client
+    /** AWS sdk dynamodb document client */
     readonly client :DocumentClient;
-    // AWS dynamodb table name
+    /** table name */
     readonly table: string;
 
     /**
@@ -156,6 +157,8 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * loads and returns entity model from storage
      * @param key - key
      * @param options - dynamodb options for get
+     * @return @skazska/abstract-service-model.GenericResult of @skazska/abstract-service-model.GenericModel<K,P>
+     *     representing record retrieved
      */
     load(key :K, options?: IDynamodbStorageGetOptions) :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
         return new Promise((resolve) => {
@@ -175,6 +178,7 @@ export class DynamodbModelStorage<K, P> extends AbstractModelStorage<K,P> {
      * saves model to storage, returns model
      * @param data - model
      * @param options - dynamodb options for (put|update)
+     * @returns data itself
      */
     save(data :GenericModel<K,P>, options?: IDynamodbStorageSaveOptions)
         :Promise<GenericResult<GenericModel<K,P>, IStorageError>> {
